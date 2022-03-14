@@ -38,9 +38,38 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+// I - external file
+// O - overwriting external file with zero-padded number
+// C - error first callback pattern
+// E - file does not exist
+
+// read counter and immediately increment
+// write new counter number to file
+// return the id
+
+// success: increment and return
+// error: console log error
+
+exports.getNextUniqueId = (callback) => {
+  readCounter((err, count) => {
+    if (err) {
+      throw ('error reading counter');
+    } else {
+      count++;
+      writeCounter(count, (err, counterString) => {
+        if (err) {
+          throw ('error writing');
+        } else {
+          callback(null, counterString);
+        }
+      });
+    }
+  });
+
+
+
+  // counter = counter + 1;
+  // return zeroPaddedNumber(counter);
 };
 
 
