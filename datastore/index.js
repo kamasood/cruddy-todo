@@ -8,13 +8,10 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-
-  // var fileID;
   counter.getNextUniqueId((err, counterID) => {
     if (err) {
       throw 'unable to get nextID';
     } else {
-      // console.log('CounterID: ' + counterID);
       var filePath = path.join(exports.dataDir, `${counterID}.txt`);
       fs.writeFile(filePath, text, (err) => {
         if (err) {
@@ -25,26 +22,32 @@ exports.create = (text, callback) => {
       });
     }
   });
-  // console.log(exports.dataDir);
-  // console.log(fileID);
-  // var filePath = path.join(exports.dataDir, fileID);
-  // fs.writeFile(filePath, text, (err) => {
-  //   if (err) {
-  //     throw 'unable to write';
-  //   } else {
-
-  //   }
-  // });
-  // console.log(id);
-  // items[id] = text;
-  // callback(null, { id, text });
 };
 
+// I - external directory, callback function
+// O - array of todo objects {id: *id*, text: *id*}
+// C - error first callback pattern
+// E - no file existing, return empty array
+
+// method to access list of files in directory
+// use fs.readdir(path, callback(err, files))
+// call forEach on files
+// remove .txt as needed
+// push to an array of objects (id as properties)
+// call initial callback with (error, arr)
+
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      throw 'cannot read files at directory';
+    } else {
+      callback(err, files.map((fileName) => {
+        let id = fileName.slice(0, -4);
+        return {id: id, text: id};
+      }));
+    }
   });
-  callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
