@@ -13,13 +13,7 @@ exports.create = (text, callback) => {
       throw 'unable to get nextID';
     } else {
       var filePath = path.join(exports.dataDir, `${counterID}.txt`);
-      fs.writeFile(filePath, text, (err) => {
-        if (err) {
-          throw 'cannot write todo file';
-        } else {
-          callback(null, {text: text, id: counterID});
-        }
-      });
+
     }
   });
 };
@@ -79,14 +73,41 @@ exports.readOne = (id, callback) => {
   });
 };
 
+// I - id, new text, callback function
+// O - updated text file at same ID as provided, on success, callback updated todo object
+// C - error-first callback
+// E - no item with ID
+
+// High Level
+// same as create, instead of getting a unique ID, we have an ID provided
+
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+
+  var filePath = path.join(exports.dataDir, `${id}.txt`);
+
+  readOne(filePath, (err, file) => {
+    if (!file) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          throw 'cannot write todo file';
+        } else {
+          callback(null, {text: text, id: counterID});
+        }
+      });
+    }
+  });
+
+
+
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, { id, text });
+  // }
 };
 
 exports.delete = (id, callback) => {
