@@ -13,7 +13,13 @@ exports.create = (text, callback) => {
       throw 'unable to get nextID';
     } else {
       var filePath = path.join(exports.dataDir, `${counterID}.txt`);
-
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          throw 'cannot write todo file';
+        } else {
+          callback(null, {text: text, id: counterID});
+        }
+      });
     }
   });
 };
@@ -85,7 +91,7 @@ exports.update = (id, text, callback) => {
 
   var filePath = path.join(exports.dataDir, `${id}.txt`);
 
-  readOne(filePath, (err, file) => {
+  exports.readOne(id, (err, file) => {
     if (!file) {
       callback(new Error(`No item with id: ${id}`));
     } else {
@@ -93,21 +99,11 @@ exports.update = (id, text, callback) => {
         if (err) {
           throw 'cannot write todo file';
         } else {
-          callback(null, {text: text, id: counterID});
+          callback(null, {text: text, id: id});
         }
       });
     }
   });
-
-
-
-  // var item = items[id];
-  // if (!item) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   items[id] = text;
-  //   callback(null, { id, text });
-  // }
 };
 
 exports.delete = (id, callback) => {
