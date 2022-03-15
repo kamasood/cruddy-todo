@@ -105,16 +105,30 @@ exports.update = (id, text, callback) => {
     }
   });
 };
+/*
 
+I - ID, (convert to filepath) and callback function
+O - No return, should functionally delete file
+C - Error First Call-back pattern
+E - File does not exist
+
+~~High Level Strategy~~
+  Create filepath, Check if file exists, if it exists, delete with FS method.
+fs.rm(filepath);
+*/
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+
+  var filePath = path.join(exports.dataDir, `${id}.txt`);
+
+  exports.readOne(id, (err, file) => {
+    if (!file) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      fs.rm(filePath, (err) => {
+        callback(err);
+      });
+    }
+  });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
