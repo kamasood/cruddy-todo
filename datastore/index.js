@@ -42,7 +42,7 @@ exports.readAll = (callback) => {
     if (err) {
       throw 'cannot read files at directory';
     } else {
-      callback(err, files.map((fileName) => {
+      callback(null, files.map((fileName) => {
         let id = fileName.slice(0, -4);
         return {id: id, text: id};
       }));
@@ -50,13 +50,33 @@ exports.readAll = (callback) => {
   });
 };
 
+
+/*
+
+I - File ID for a specific ToDo and a callback function
+O - Object containing ID that matches input, and the text found within matching file
+C - Error first callback pattern
+E - 404
+
+~~High Level Strategy~~
+  Use fs.readfile method - aliased ID with filepath string + txt
+  Use callback to deal with error case of no text in file
+  Success case will build object and pass it into the provided callback
+
+*/
+
+
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  var filePath = path.join(exports.dataDir, `${id}.txt`);
+
+  fs.readFile(filePath, (err, text) => {
+    if (!text) {
+      callback(new Error(`No item with ID ${id}`));
+    } else {
+      let textContents = text.toString();
+      callback(null, {id: id, text: textContents});
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
