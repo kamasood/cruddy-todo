@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
 
 var items = {};
 
@@ -36,18 +37,52 @@ exports.create = (text, callback) => {
 // push to an array of objects (id as properties)
 // call initial callback with (error, arr)
 
+
+// PHASE 2 - REFACTOR
+
+// I - external directory
+// O - promise that is a promise of all of the files inside the directory
+// C - make use of promises (Promise.all)
+// E -
+
+// high level
+// return promisePrime - a Promise.all for each of the files
+// readOne on each of the files
+
 exports.readAll = (callback) => {
+
+  var promiseFiles = [];
 
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
-      throw 'cannot read files at directory';
+      throw 'error reading directory';
     } else {
-      callback(null, files.map((fileName) => {
-        let id = fileName.slice(0, -4);
-        return {id: id, text: id};
-      }));
+      console.log('ping, files returned from readdir:', files);
+      for (let i = 0; i < files.length; i++) {
+        promiseFiles.push(readOneAsync(files[i].slice(0, -4)));
+      }
     }
   });
+
+  console.log('files array', promiseFiles);
+
+
+  Promise.all(promiseFiles).then((files) => {
+    callback(null, files);
+  });
+
+
+
+  // fs.readdir(exports.dataDir, (err, files) => {
+  //   if (err) {
+  //     throw 'cannot read files at directory';
+  //   } else {
+  //     callback(null, files.map((fileName) => {
+  //       let id = fileName.slice(0, -4);
+  //       return {id: id, text: id};
+  //     }));
+  //   }
+  // });
 };
 
 
@@ -68,7 +103,6 @@ E - 404
 
 exports.readOne = (id, callback) => {
   var filePath = path.join(exports.dataDir, `${id}.txt`);
-
   fs.readFile(filePath, (err, text) => {
     if (!text) {
       callback(new Error(`No item with ID ${id}`));
@@ -78,6 +112,8 @@ exports.readOne = (id, callback) => {
     }
   });
 };
+
+const readOneAsync = Promise.promisify(exports.readOne);
 
 // I - id, new text, callback function
 // O - updated text file at same ID as provided, on success, callback updated todo object
