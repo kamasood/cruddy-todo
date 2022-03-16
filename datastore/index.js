@@ -25,67 +25,6 @@ exports.create = (text, callback) => {
   });
 };
 
-// I - external directory, callback function
-// O - array of todo objects {id: *id*, text: *id*}
-// C - error first callback pattern
-// E - no file existing, return empty array
-
-// method to access list of files in directory
-// use fs.readdir(path, callback(err, files))
-// call forEach on files
-// remove .txt as needed
-// push to an array of objects (id as properties)
-// call initial callback with (error, arr)
-
-
-// PHASE 2 - REFACTOR
-
-// I - external directory
-// O - promise that is a promise of all of the files inside the directory
-// C - make use of promises (Promise.all)
-// E -
-
-// high level
-// return promisePrime - a Promise.all for each of the files
-// readOne on each of the files
-
-exports.readAll = (callback) => {
-
-  var promiseFiles = [];
-
-  fs.readdir(exports.dataDir, (err, files) => {
-    if (err) {
-      throw 'error reading directory';
-    } else {
-      console.log('ping, files returned from readdir:', files);
-      for (let i = 0; i < files.length; i++) {
-        promiseFiles.push(readOneAsync(files[i].slice(0, -4)));
-      }
-    }
-  });
-
-  console.log('files array', promiseFiles);
-
-
-  Promise.all(promiseFiles).then((files) => {
-    callback(null, files);
-  });
-
-
-
-  // fs.readdir(exports.dataDir, (err, files) => {
-  //   if (err) {
-  //     throw 'cannot read files at directory';
-  //   } else {
-  //     callback(null, files.map((fileName) => {
-  //       let id = fileName.slice(0, -4);
-  //       return {id: id, text: id};
-  //     }));
-  //   }
-  // });
-};
-
-
 /*
 
 I - File ID for a specific ToDo and a callback function
@@ -114,6 +53,76 @@ exports.readOne = (id, callback) => {
 };
 
 const readOneAsync = Promise.promisify(exports.readOne);
+
+// I - external directory, callback function
+// O - array of todo objects {id: *id*, text: *id*}
+// C - error first callback pattern
+// E - no file existing, return empty array
+
+// method to access list of files in directory
+// use fs.readdir(path, callback(err, files))
+// call forEach on files
+// remove .txt as needed
+// push to an array of objects (id as properties)
+// call initial callback with (error, arr)
+
+
+// PHASE 2 - REFACTOR
+
+// I - external directory
+// O - promise that is a promise of all of the files inside the directory
+// C - make use of promises (Promise.all)
+// E -
+
+// high level
+// return promisePrime - a Promise.all for each of the files
+// readOne on each of the files
+
+exports.readAll = (callback) => {
+
+  let myPromise = new Promise((resolve, reject) => {
+    var promiseArray = [];
+    fs.readdir(exports.dataDir, (err, files) => {
+      if (err) {
+        throw 'error reading directory';
+        reject(err);
+      } else {
+        // console.log('ping, files returned from readdir:', files);
+        for (let i = 0; i < files.length; i++) {
+          promiseArray.push(readOneAsync(files[i].slice(0, -4)));
+        }
+        resolve(promiseArray);
+      }
+    });
+  }).then((array) => {
+    Promise.all(array)
+      .then((array) => {
+        callback(null, array);
+      });
+  });
+
+
+  // Promise.all(promiseArray).then((files) => {
+  //   console.log('individual files: ' + files);
+  //   callback(null, files);
+  // });
+
+
+
+  // fs.readdir(exports.dataDir, (err, files) => {
+  //   if (err) {
+  //     throw 'cannot read files at directory';
+  //   } else {
+  //     callback(null, files.map((fileName) => {
+  //       let id = fileName.slice(0, -4);
+  //       return {id: id, text: id};
+  //     }));
+  //   }
+  // });
+};
+
+
+
 
 // I - id, new text, callback function
 // O - updated text file at same ID as provided, on success, callback updated todo object
